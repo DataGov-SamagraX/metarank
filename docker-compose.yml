@@ -1,6 +1,24 @@
-version: '3'
+version: "3"
 
 services:
+  redis:
+    container_name: redis
+    image: "redis:7.0.0"
+    ports:
+      - "6379:6379"
+
+  metarank:
+    container_name: metarank
+    image: metarank/metarank:latest
+    depends_on:
+      - redis
+    command: "inference --config /data/config.yml --model /data/model/metarank.model  --redis-host redis --format json --savepoint-dir /data/output/savepoint"
+    volumes:
+      - ./metarank:/data
+    ports:
+      - "8080:8080"
+      - "6123:6123"
+
   server:
     container_name: server
     build:
@@ -10,9 +28,10 @@ services:
         - BUILD_CONTEXT=server
     environment:
       - ADDRESS=0.0.0.0
-      - METARANK_URL=${METARANK_URL}
+      - METARANK_URL=http://metarank:8080
     ports:
-      - '3001:3001'
+      - "3001:3001"
+
   frontend:
     container_name: frontend
     build:
@@ -21,4 +40,4 @@ services:
       args:
         - BUILD_CONTEXT=frontend
     ports:
-      - '3000:3000'
+      - "3000:3000"
