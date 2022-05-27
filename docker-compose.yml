@@ -12,7 +12,7 @@ services:
     image: metarank/metarank:latest
     depends_on:
       - redis
-    command: "inference /data/config.yml 
+    command: "inference /data/config.yml"
     volumes:
       - ./metarank:/data
     ports:
