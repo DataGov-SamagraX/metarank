@@ -12,7 +12,7 @@ services:
     image: metarank/metarank:latest
     depends_on:
       - redis
-    command: "inference --config /data/config.yml --model /data/model/metarank.model  --redis-host redis --format json --savepoint-dir /data/output/savepoint"
+    command: "inference /data/config.yml 
     volumes:
       - ./metarank:/data
     ports:
