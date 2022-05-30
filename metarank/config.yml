@@ -1,37 +1,8 @@
-features:
-  - name: popularity
-    type: number
-    scope: item
-    source: item.popularity
-
-  - name: genre
-    type: string
-    scope: item
-    source: item.genres
-    values:
-      - drama
-      - comedy
-      - thriller
-
-models:
-  default:
-    type: lambdamart
-    path: /data/xgboost.model
-    backend:
-      type: xgboost
-      iterations: 10
-      seed: 0
-    weights:
-      click: 1
-    features:
-      - popularity
-      - genre
-
 bootstrap:
   source:
     type: file
-    path file:///data/events/
-  workdir: file:///data/bootstrap
+    path: /data/events
+  workdir: /data/bootstrap
 
 inference:
   port: 8080
@@ -42,3 +13,144 @@ inference:
     type: redis
     host: localhost
     format: json
+
+models:
+  xgboost:
+    type: lambdamart
+    path: /data/xgboost.model
+    backend:
+      type: xgboost
+      iterations: 10
+      seed: 0
+    weights:
+      click: 1
+    features:
+      - popularity
+      - vote_avg
+      - vote_cnt
+      - budget
+      - release_date
+      - runtime
+      - title_length
+      - genre
+      - ctr
+      - liked_genre
+      - liked_actors
+      - liked_tags
+      - liked_director
+      - visitor_click_count
+      - global_item_click_count
+      - day_item_click_count
+features:
+  - name: popularity
+    type: number
+    scope: item
+    source: item.popularity
+
+  - name: vote_avg
+    type: number
+    scope: item
+    source: item.vote_avg
+
+  - name: vote_cnt
+    type: number
+    scope: item
+    source: item.vote_cnt
+
+  - name: budget
+    type: number
+    scope: item
+    source: item.budget
+
+  - name: release_date
+    type: number
+    scope: item
+    source: item.release_date
+
+  - name: runtime
+    type: number
+    scope: item
+    source: item.runtime
+
+  - name: title_length
+    type: word_count
+    source: item.title
+    scope: item
+
+  - name: genre
+    type: string
+    scope: item
+    source: item.genres
+    values:
+      - drama
+      - comedy
+      - thriller
+      - action
+      - adventure
+      - romance
+      - crime
+      - science fiction
+      - fantasy
+      - family
+      - horror
+      - mystery
+      - animation
+      - history
+      - music
+
+  - name: ctr
+    type: rate
+    top: click
+    bottom: impression
+    scope: item
+    bucket: 24h
+    periods: [7,30]
+
+  - name: liked_genre
+    type: interacted_with
+    interaction: click
+    field: item.genres
+    scope: session
+    count: 10
+    duration: 24h
+
+  - name: liked_actors
+    type: interacted_with
+    interaction: click
+    field: item.actors
+    scope: session
+    count: 10
+    duration: 24h
+
+  - name: liked_tags
+    type: interacted_with
+    interaction: click
+    field: item.tags
+    scope: session
+    count: 10
+    duration: 24h
+
+  - name: liked_director
+    type: interacted_with
+    interaction: click
+    field: item.director
+    scope: session
+    count: 10
+    duration: 24h
+
+  - name: visitor_click_count
+    type: interaction_count
+    interaction: click
+    scope: session
+
+  - name: global_item_click_count
+    type: interaction_count
+    interaction: click
+    scope: item
+
+  - name: day_item_click_count
+    type: window_count
+    interaction: click
+    scope: item
+    bucket: 24h
+    periods: [7,30]
