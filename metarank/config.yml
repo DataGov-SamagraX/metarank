@@ -1,117 +1,44 @@
-interactions:
-  - name: click
-    weight: 1.0
-
 features:
   - name: popularity
     type: number
     scope: item
-    source: metadata.popularity
-
-  - name: vote_avg
-    type: number
-    scope: item
-    source: metadata.vote_avg
-
-  - name: vote_cnt
-    type: number
-    scope: item
-    source: metadata.vote_cnt
-
-  - name: budget
-    type: number
-    scope: item
-    source: metadata.budget
-
-  - name: release_date
-    type: number
-    scope: item
-    source: metadata.release_date
-
-  - name: runtime
-    type: number
-    scope: item
-    source: metadata.runtime
-
-  - name: title_length
-    type: word_count
-    source: metadata.title
-    scope: item
+    source: item.popularity
 
   - name: genre
     type: string
     scope: item
-    source: metadata.genres
+    source: item.genres
     values:
       - drama
       - comedy
       - thriller
-      - action
-      - adventure
-      - romance
-      - crime
-      - science fiction
-      - fantasy
-      - family
-      - horror
-      - mystery
-      - animation
-      - history
-      - music
 
-  - name: ctr
-    type: rate
-    top: click
-    bottom: impression
-    scope: item
-    bucket: 24h
-    periods: [7,30]
+models:
+  default:
+    type: lambdamart
+    path: /data/xgboost.model
+    backend:
+      type: xgboost
+      iterations: 10
+      seed: 0
+    weights:
+      click: 1
+    features:
+      - popularity
+      - genre
 
-  - name: liked_genre
-    type: interacted_with
-    interaction: click
-    field: metadata.genres
-    scope: session
-    count: 10
-    duration: 24h
+bootstrap:
+  source:
+    type: file
+    path file:///data/events/
+  workdir: file:///data/bootstrap
 
-  - name: liked_actors
-    type: interacted_with
-    interaction: click
-    field: metadata.actors
-    scope: session
-    count: 10
-    duration: 24h
-
-  - name: liked_tags
-    type: interacted_with
-    interaction: click
-    field: metadata.tags
-    scope: session
-    count: 10
-    duration: 24h
-
-  - name: liked_director
-    type: interacted_with
-    interaction: click
-    field: metadata.director
-    scope: session
-    count: 10
-    duration: 24h
-
-  - name: visitor_click_count
-    type: interaction_count
-    interaction: click
-    scope: session
-
-  - name: global_item_click_count
-    type: interaction_count
-    interaction: click
-    scope: item
-
-  - name: day_item_click_count
-    type: window_count
-    interaction: click
-    scope: item
-    bucket: 24h
-    periods: [7,30]
+inference:
+  port: 8080
+  host: "0.0.0.0"
+  source:
+    type: rest
+  state:
+    type: redis
+    host: localhost
+    format: json
