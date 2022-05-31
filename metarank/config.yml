@@ -11,7 +11,7 @@ inference:
     type: rest
   state:
     type: redis
-    host: localhost
+    host: redis
     format: json
 
 models:
