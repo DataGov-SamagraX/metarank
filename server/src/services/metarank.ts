@@ -16,7 +16,7 @@ export async function rank(user: string, session: string, id: string, items: Mov
     timestamp: +Date.now(),
   };
 
-  const response = await axios.post<MetarankRankResponse>(`${METARANK_URL}/rank?explain=true`, data);
+  const response = await axios.post<MetarankRankResponse>(`${METARANK_URL}/rank/xgboost?explain=true`, data);
 
   const personalizationResponse = response.data;
 
