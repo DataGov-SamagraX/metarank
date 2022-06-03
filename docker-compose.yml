@@ -7,11 +7,20 @@ services:
     ports:
       - "6379:6379"
 
+  metarank_upload:
+    container_name: metarank_upload
+    image: metarank/metarank:latest
+    depends_on:
+      - redis
+    command: "upload /data/config.yml"
+    volumes:
+      - ./metarank:/data
+
   metarank:
     container_name: metarank
     image: metarank/metarank:latest
     depends_on:
-      - redis
+      - metarank_upload
     command: "inference /data/config.yml"
     volumes:
       - ./metarank:/data
@@ -21,6 +30,8 @@ services:
 
   server:
     container_name: server
+    depends_on:
+      - metarank
     build:
       context: .
       dockerfile: Dockerfile
@@ -33,6 +44,8 @@ services:
       - "3001:3001"
 
   frontend:
+    depends_on:
+      - redis
     container_name: frontend
     build:
       context: .
