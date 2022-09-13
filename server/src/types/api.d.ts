@@ -1,3 +1,0 @@
-interface IIDParams {
-  id: string;
-}

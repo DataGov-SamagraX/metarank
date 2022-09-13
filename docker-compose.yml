@@ -7,50 +7,42 @@ services:
     ports:
       - "6379:6379"
 
-  metarank_upload:
-    container_name: metarank_upload
-    image: metarank/metarank:latest
+  metarank_standalone:
+    container_name: metarank_standalone
+    image: metarank/metarank:0.5.3
     depends_on:
       - redis
-    command: "upload /data/config.yml"
-    volumes:
-      - ./metarank:/data
-
-  metarank:
-    container_name: metarank
-    image: metarank/metarank:latest
-    depends_on:
-      - metarank_upload
-    command: "inference /data/config.yml"
+    command: "standalone --config /data/config.yml --data /data/events/"
     volumes:
       - ./metarank:/data
     ports:
       - "8080:8080"
       - "6123:6123"
+      - "8081:8081"
 
-  server:
-    container_name: server
-    depends_on:
-      - metarank
-    build:
-      context: .
-      dockerfile: Dockerfile
-      args:
-        - BUILD_CONTEXT=server
-    environment:
-      - ADDRESS=0.0.0.0
-      - METARANK_URL=http://metarank:8080
-    ports:
-      - "3001:3001"
+  # server:
+    # container_name: server
+    # depends_on:
+      # - metarank_standalone
+    # build:
+      # context: .
+      # dockerfile: Dockerfile
+      # args:
+        # - BUILD_CONTEXT=server
+    # environment:
+      # - ADDRESS=0.0.0.0
+      # - METARANK_URL=http://metarank:8080
+    # ports:
+      # - "3001:3001"
 
-  frontend:
-    depends_on:
-      - redis
-    container_name: frontend
-    build:
-      context: .
-      dockerfile: Dockerfile
-      args:
-        - BUILD_CONTEXT=frontend
-    ports:
-      - "3000:3000"
+  # frontend:
+    # depends_on:
+      # - redis
+    # container_name: frontend
+    # build:
+      # context: .
+      # dockerfile: Dockerfile
+      # args:
+        # - BUILD_CONTEXT=frontend
+    # ports:
+      # - "3000:3000"

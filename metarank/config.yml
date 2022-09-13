@@ -1,142 +1,107 @@
-bootstrap:
-  source:
-    type: file
-    path: /data/events
-  workdir: /data/bootstrap
+state:
+  type: memory
 
-inference:
-  port: 8080
-  host: "0.0.0.0"
-  source:
-    type: rest
-  state:
-    type: redis
-    host: redis
-    format: json
 
 models:
   xgboost:
     type: lambdamart
-    path: /data/xgboost.model
     backend:
-      type: xgboost
-      iterations: 10
-      seed: 0
+      type: xgboost # supported values: xgboost, lightgbm for lambdamart model
+      iterations: 100 # optional (default 100), number of iterations while training the model
+      seed: 0 # optional (default = random), a seed to make training deterministic
     weights:
       click: 1
     features:
-      - popularity
-      - vote_avg
-      - vote_cnt
-      - budget
-      - release_date
-      - runtime
-      - title_length
-      - genre
+      - Activities
+      - Own_poultry
+      - Own_animal_small
+      - Own_animal_large
+      - Farmertype
+      - duration
+      - tag_2
+      - base_tag
       - ctr
-      - liked_genre
-      - liked_actors
-      - liked_tags
-      - liked_director
+      - liked_crop
       - visitor_click_count
       - global_item_click_count
       - day_item_click_count
+      
 features:
-  - name: popularity
+  - name: Activities
+    type: string
+    scope: user
+    source: user.Activities
+    values:
+      - Crop_prod
+      - Animal_husbandry
+      - Fisheries
+      - Forestry
+
+  - name: Own_poultry
     type: number
-    scope: item
-    source: item.popularity
+    scope: user
+    source: user.Own_poultry
 
-  - name: vote_avg
+  - name: Own_animal_small
     type: number
-    scope: item
-    source: item.vote_avg
+    scope: user
+    source: user.Own_animal_small
 
-  - name: vote_cnt
+  - name: Own_animal_large
     type: number
-    scope: item
-    source: item.vote_cnt
+    scope: user
+    source: user.Own_animal_large
 
-  - name: budget
+  - name: Farmertype
     type: number
-    scope: item
-    source: item.budget
+    scope: user
+    source: user.Farmertype
 
-  - name: release_date
+  - name: duration
     type: number
+    source: item.duration
     scope: item
-    source: item.release_date
-
-  - name: runtime
-    type: number
-    scope: item
-    source: item.runtime
-
-  - name: title_length
-    type: word_count
-    source: item.title
-    scope: item
-
-  - name: genre
+    
+  - name: tag_2
     type: string
     scope: item
-    source: item.genres
+    source: item.tag_2
     values:
-      - drama
-      - comedy
-      - thriller
-      - action
-      - adventure
-      - romance
-      - crime
-      - science fiction
-      - fantasy
-      - family
-      - horror
-      - mystery
-      - animation
-      - history
-      - music
+      - pest management
+      - nursery_management
+      - fertilizer_management
+      - harvest_management
+      - dm
+      - pp
+      - vaccination
+      - bm
+      - freshwater
+      - marinefisheries
 
+  - name: base_tag
+    type: string
+    scope: item
+    source: item.base_tag
+    values:
+      - crop
+      - livestock
+      - fishery
+  
   - name: ctr
     type: rate
     top: click
     bottom: impression
     scope: item
     bucket: 24h
-    periods: [7,30]
-
-  - name: liked_genre
+    periods: [30,60]
+    
+  - name: liked_crop
     type: interacted_with
     interaction: click
-    field: item.genres
+    field: item.crop
     scope: session
-    count: 10
-    duration: 24h
-
-  - name: liked_actors
-    type: interacted_with
-    interaction: click
-    field: item.actors
-    scope: session
-    count: 10
-    duration: 24h
-
-  - name: liked_tags
-    type: interacted_with
-    interaction: click
-    field: item.tags
-    scope: session
-    count: 10
-    duration: 24h
-
-  - name: liked_director
-    type: interacted_with
-    interaction: click
-    field: item.director
-    scope: session
-    count: 10
-    duration: 24h
+    count: 5
+    duration: 720h
 
   - name: visitor_click_count
     type: interaction_count
@@ -153,4 +118,13 @@ features:
     interaction: click
     scope: item
     bucket: 24h
-    periods: [7,30]
+    periods: [60]
+    
+api:
+  port: 8080 # optional, default 8080
+  host: "0.0.0.0" # optional, default 0.0.0.0
+
+core:
+  tracking:
+    analytics: true
+    errors: true
